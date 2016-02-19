@@ -2,52 +2,34 @@ require 'spec_helper'
 
 describe Beepsend::Client do
   describe '#send_sms' do
-    context 'success' do
-      let(:token) { 'SECRETTOKENXXX' }
+    let(:token) { 'SECRETTOKENXXX' }
+    let(:request_body) { "{\"encoding\":\"UTF-8\",\"receive_dlr\":0,\"to\":\"000\",\"from\":\"Luke\",\"message\":\"May 4th\"}" }
+    let(:response_body) { "[{\"id\":[\"096658200145588963128001380965891942\"],\"from\":\"Luke\",\"to\":\"000\"}]" }
 
-      before do
-        Beepsend.configure { |c| c.token = token }
-      end
-
-      after do
-        Beepsend.reset_configuration
-      end
-
-      it 'sends request to API endpoint' do
-        headers = {
-          'Accept' => '*/*',
-          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-          'Authorization' => "Token #{token}",
-          'Content-Type' => 'application/json',
-          'User-Agent' => 'Ruby'
-        }
-        stub_request(:post, "https://api.beepsend.com/2/send/").
-          with(body: "{\"encoding\":\"UTF-8\",\"receive_dlr\":0,\"to\":\"000\",\"from\":\"Luke\",\"message\":\"May 4th\"}",
-               headers: headers).
-               to_return(status: 201, body: 'success', headers: {})
-
-        send_message
-      end
+    before do
+      Beepsend.configure { |c| c.token = token }
     end
 
-    context 'fail' do
-      it 'raises exception if response from server is not 201' do
-        headers = {
-          'Accept' => '*/*',
-          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-          'Authorization' => 'Token ',
-          'Content-Type' => 'application/json',
-          'User-Agent' => 'Ruby'
-        }
-        stub_request(:post, "https://api.beepsend.com/2/send/").
-          with(body: "{\"encoding\":\"UTF-8\",\"receive_dlr\":0,\"to\":\"000\",\"from\":\"Luke\",\"message\":\"May 4th\"}",
-               headers: headers).
-               to_return(status: 401, body: "{\"errors\":[\"Request header must contain 'Token <api-token>'\"]}", headers: {})
+    after do
+      Beepsend.reset_configuration
+    end
 
-        error_message = %q{Response code: 401. Body: {"errors":["Request header must contain 'Token <api-token>'"]}}
+    before do
+      headers = {
+        'Accept' => '*/*',
+        'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+        'Authorization' => "Token #{token}",
+        'Content-Type' => 'application/json',
+        'User-Agent' => 'Ruby'
+      }
+      stub_request(:post, "https://api.beepsend.com/2/send/").
+        with(body: request_body,
+             headers: headers).
+             to_return(status: 201, body: response_body, headers: {})
+    end
 
-        expect { send_message }.to raise_error(Beepsend::ServerResponseError, error_message)
-      end
+    it 'returns response body' do
+      expect(send_message).to eq(response_body)
     end
 
     def send_message

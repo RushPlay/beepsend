@@ -1,8 +1,7 @@
 module Beepsend
   class Client
     def send_sms(to:, from: configuration.from, message:)
-      response = http.request request(to, from, message)
-      handle_response response
+      http.request(request(to, from, message)).body
     end
 
     private
@@ -13,12 +12,6 @@ module Beepsend
       request['Content-Type'] = 'application/json'
       request.body = default_options.merge(to: to, from: from, message: message).to_json
       request
-    end
-
-    def handle_response(response)
-      unless response.code =~ /\A2\d\d\Z/ # all 2xx codes
-        raise ServerResponseError, "Response code: #{response.code}. Body: #{response.body}"
-      end
     end
 
     def configuration

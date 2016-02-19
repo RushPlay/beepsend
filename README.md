@@ -36,8 +36,26 @@ Here is example usage of this gem:
 
 ```ruby
 beepsend = Beepsend::Client.new
-beepsend.send_sms(to: '000xxx555', from: 'Mailman', message: 'Hello world!')
-# => ["201", "[{"id": ["TX ID number"], "from": "Mailman", "to": "000xxx555"}]"]
+
+# Message has been successfully sent
+beepsend.send_sms(to: '380xxxxxxxx2', from: 'Sender', message: 'hello')
+=> "[{\"id\":[\"0966xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2\"],\"from\":\"Sender\",\"to\":\"380xxxxxxxx2\"}]"
+
+# Invalid recipient
+> beepsend.send_sms(to: 'wrong recipient', from: 'Sender', message: 'hello')
+=> "{\"errors\":[{\"code\":1031,\"description\":\"\\\"to\\\" is required and needs to be between 3-17 chars and not null\"}]}"
+
+# Invalid from
+> beepsend.send_sms(to: '380xxxxxxxx2', from: 'Bad from field', message: 'hello')
+=> "{\"errors\":[{\"code\":1030,\"description\":\"\\\"from\\\" can not be longer than 11 characters\"}]}"
+
+# Empty message
+> beepsend.send_sms(to: '380xxxxxxxx2', from: 'Sender', message: '')
+=> "{\"errors\":[{\"code\":1036,\"description\":\"body must not be empty\"}]}"
+
+# Invalid API token
+> beepsend.send_sms(to: '380xxxxxxxx2', from: 'Sender', message: 'hello')
+=> "{\"errors\":[\"A valid API-token is required.\"]}"
 ```
 
 ## Development
